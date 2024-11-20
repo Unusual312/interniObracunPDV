@@ -6,21 +6,9 @@ const clientsData = [
         "drzavaSedista": "Republika Srbija"
     },
     {
-        "Naziv": "KONTO INTER KONTO",
-        "Adresa": "Kraljice Natalije 46-48, Beograd - Savski venac",
-        "poreskiBroj": "105454995",
+        "Naziv": "Test1",
+        "Adresa": "Testna adresa",
+        "poreskiBroj": "poreskiBrojTest",
         "drzavaSedista": "Republika Srbija"
     },
-    {
-        "Naziv": "",
-        "Adresa": "",
-        "poreskiBroj": "",
-        "Država sedišta": ""
-    },
-    {
-        "Naziv": "Test1",
-        "Adresa": "Adresa Test1",
-        "poreskiBroj": "111111111",
-        "drzavaSedista": "Test"
-    }
 ];
