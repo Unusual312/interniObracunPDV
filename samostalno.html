@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interni obrаčun PDV</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/vfs_fonts.js"></script>
+    <script src="podaci.js"></script>
+    <script src="generisanje.js"></script>
+    <style>
+
+        body{
+            font-family: Arial, sans-serif;
+            margin: 10px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .box {
+            width: 300px;
+            height: 100px;
+            margin: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transform: transform 0.2s, filter 0,2s;
+        }
+
+        .box:hover {
+            filter: saturate(2);
+            transform: scale(1.05);
+        }
+
+        .box:nth-child(1) {background-color: #003f88;}
+        .box:nth-child(2) {background-color: #0056b3;}
+        .box:nth-child(3) {background-color: #0073e6;}
+        .box:nth-child(4) {background-color: #3399ff;}
+        .box:nth-child(5) {background-color: #66b3ff;}
+        .box:nth-child(6) {background-color: #99ccff;}
+
+        .centeredButtons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rightButtons {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        button {
+            padding: 18px 22px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            margin: 10px;
+            background-color: #0984e3;
+        }
+
+        .add_client {
+            background-color: #27ae60;
+        }
+
+        .addClient {
+            background-color:#27ae60;
+        }
+
+        .view-client {
+            background-color: #0073e6;
+        }
+
+        .goBack {
+            background-color: #e74c3c;
+        }
+
+        .generateRow {
+            background-color: #27ae60;
+        }
+
+        #noBtn {
+            background-color: #e74c3c;
+        }
+
+        button:hover{
+            filter: saturate(2);
+        }
+
+        option {
+            font-size: 14px;
+            padding: 5px;
+            background-color: #fff;
+            color: #333;
+        }
+
+        input[type="text"], input[type="date"], input[type="number"], input[list] {
+            width: 100%;
+            max-width: 900px;
+            padding: 8px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .form-section {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+
+        table th, table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        #screen7 {
+            width: 100vw;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        #screen7 .form-section {
+            max-width: 100%;
+            margin: 0 auto;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #screen7 table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        #screen7 table th,
+        #screen7 table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+            word-wrap: break-word;
+        }
+
+        #screen7 .centeredButtons {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        #clientsTable {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            table-layout: fixed;
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+            word-wrap: break-word;
+        }
+
+        .delete-button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .suggestions {
+            background-color: white;
+            max-height: 200px;
+            overflow-y: auto;
+            position: absolute;
+            z-index: 1000;
+            width: auto;
+            min-width: 300px;
+            max-width: 900px;
+            box-sizing: border-box;
+            margin-top: -8px;
+            border-radius: 0 0 6px 6px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .suggestion {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .suggestion:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion:hover {
+            background-color: #f8fafc;
+        }
+
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 0 10px;
+            }
+
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+
+            .rightButtons {
+                position: relative;
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                top: auto;
+                right: auto;
+                gap: 8px;
+                margin-bottom: 20px;
+            }
+
+            h1 {
+                margin-top: 10px;
+            }
+
+            #screen7 {
+                padding: 0 10px;
+            }
+
+            #screen7 table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+
+    </style>
+    <body>
+        <div class="container">
+            <div class="screen active" id="screen1">
+                <h1>Izaberite vrstu računa</h1>
+                <div class="boxes">
+                    <div class="box" data-value="strano_lice">Interni račun - strano lice</div>
+                    <div class="box" data-value="obveznik_pdv">Interni račun - obveznik PDV</div>
+                    <div class="box" data-value="prenos_autorskih_prava_strano_lice">Interni račun - prenos, ustupanje i davanje na korišćenje autorskih i srodnih prava - strano lice</div>
+                    <div class="box" data-value="prenos_autorskih_prava_obveznik_pdv">Interni račun - prenos, ustupanje i davanje na korišćenje autorskih i srodnih prava - obveznik PDV</div>
+                    <div class="box" data-value="promet_objekata_strano_lice">Interni račun - promet objekata, ekonomski deljivih celina i vlasničkih udela - strano lice</div>
+                    <div class="box" data-value="promet_objekata_obveznik_pdv">Interni račun - promet objekata, ekonomski deljivih celina i vlasničkih udela - obveznik PDV</div>
+                </div>
+            </div>
+
+            <div class="screen" id="screen2">
+                <h1>Izaberite vrstu promene</h1>
+                    <div class="box" data-value="promet_dobara">Promet dobara ili usluga</div>
+                    <div class="box" data-value="povecanje_naknade">Povećanje naknade za promet dobara ili usluga</div>
+                    <div class="box" data-value="smanjenje_naknade">Smanjenje naknade za promet dobara ili usluga</div>
+                    <div class="box" data-value="placanje_avansa">Plaćanje avansa</div>
+                    <div class="box" data-value="smanjenje_avansa">Smanjenje avansa</div>
+            </div>
+
+            <div class="screen" id="screen3">
+                <h1>Izabrali ste: <span style="color: #003f88;" id="selectedOption1"></span></h1>
+                <h1>kada se radi o: <span style="color: #003f88;" id="selectedOption2"></span></h1>
+
+                <div class="centeredButtons">
+                    <button id="yesBtn">Da</button>
+                    <button id="noBtn">Ne</button>
+                </div>
+
+            </div>
+
+            <div class="screen" id="screen4">
+
+                <div class="rightButtons">
+                    <button class="view-client" onclick="showViewClientScreen()">Pregled klijenata</button>
+                </div>
+
+                <h1>Unesite podatke</h1>
+                <div class="form-section">
+                    <h2>SAČINJAVALAC</h2>
+                    <input type="text" id="sacinjavalacNaziv" placeholder="Naziv">
+                    <input type="text" id="sacinjavalacAdresa" placeholder="Adresa">
+                    <input type="text" id="sacinjavalacPoreskiBroj" placeholder="Poreski broj">
+                    <input type="text" id="sacinjavalacOdgovornoLice" placeholder="Odgovorno lice">
+                    <div class="suggestions" id="sacinjavalacSuggestions"></div>
+                </div>
+                <div>
+                    <h2>ISPORUČILAC</h2>
+                    <input type="text" id="isporucilacNaziv" placeholder="Naziv">
+                    <input type="text" id="isporucilacAdresa" placeholder="Adresa">
+                    <input type="text" id="isporucilacPoreskiBroj" placeholder="Poreski broj">
+                    <div class="suggestions" id="isporucilacSuggestions"></div>
+                </div>
+
+                <div class="centeredButtons">
+                    <button>Sledeći korak</button>
+                    <button style="background-color: #e74c3c;">Prethodni korak</button>
+                </div>
+
+            </div>
+
+            <div class="screen" id="screen5">
+                <h1>Unesite podatke novog klijenta</h1>
+                <div class="form-section">
+                    <div>
+                        <input type="text" id="naziv" placeholder="Naziv">
+                        <input type="text" id="adresa" placeholder="Adresa (npr. Kraljice Natalije 46, Beograd - Savski venac)">
+                        <input type="text" id="pib" placeholder="Poreski broj">
+                        <input type="text" id="drzava" placeholder="Država sedišta">
+                    </div>
+
+                    <button class="addClient" onclick="addClient()">Dodaj</button>
+                    <button class="goBack" onclick="goBackToLastScreen()">Nazad</button>
+                </div>
+            </div>
+
+            <div class="screen" id="screen6">
+
+                <button class="goBack" onclick="goBackToLastScreen()">Nazad</button>
+
+                <h1>Pregled postojećih klijenata</h1>
+
+                <table id="clientsTable">
+                    <thead>
+                        <tr>
+                            <th>Naziv</th>
+                            <th>Adresa</th>
+                            <th>Poreski broj</th>
+                            <th>Država sedišta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="screen" id="screen7">
+                <h1>Unesite podatke</h1>
+
+                <div class="form-section">
+                    <label for="rednibroj">Redni broj internog računa</label>
+                    <input type="text" placeholder="Unesite redni broj internog računa">
+
+                    <label for="povezanibroj">Broj povezanog internog računa</label>
+                    <input type="text" placeholder="Unesite broj povezanog internog računa">
+
+                    <label for="datumsacinjavanja">Datum sačinjavanja internog računa</label>
+                    <input type="text" id="dateInput" placeholder="Unesite datum sačinjavanja internog računa">
+
+                    <label for="datumnastankaobaveze">Datum nastanka porekse obaveze</label>
+                    <input type="text" id="dateInput" placeholder="Unesite datum nastanka poreske obaveze, odnosno smanjenja naknade ili avansa">
+
+                    <label for="currency">Valuta</label>
+                    <input list="currency-list" id="currency" name="currency" placeholder="Izaberite valutu">
+                    <datalist id="currency-list">
+                        <option value="RSD">Dinar - Srbija - RSD</option>
+                        <option value="EUR">Evro - Evrozona - EUR</option>
+                        <option value="USD">Dolar - Sjedinjene Države - USD</option>
+                        <option value="GBP">Funta - Ujedinjeno Kraljevstvo - GBP</option>
+                        <option value="CHF">Franak - Švajcarska - CHF</option>
+                        <option value="RUB">Rublja - Rusija - RUB</option>
+                        <option value="AUD">Australijski dolar - Australija - AUD</option>
+                        <option value="CAD">Kanadski dolar - Kanada - CAD</option>
+                        <option value="CNY">Juan - Narodna Republika Kina - CNY</option>
+                        <option value="DKK">Danska kruna - Danska - DKK</option>
+                        <option value="HUF">Forinta - Mađarska - HUF</option>
+                        <option value="INR">Rupija - Indija - INR</option>
+                        <option value="JPY">Jen - Japan - JPY</option>
+                        <option value="KWD">Kuvajtski dinar - Kuvajt - KWD</option>
+                        <option value="SEK">Švedska kruna - Švedska - SEK</option>
+                        <option value="AED">Dirham - Ujedinjeni Arapski Emirati - AED</option>
+                        <option value="MKD">Denar - Severna Makedonija - MKD</option>
+                        <option value="BYN">Beloruska rublja - Belorusija - BYN</option>
+                        <option value="RON">Lej - Rumunija - RON</option>
+                        <option value="TRY">Lira - Turska - TRY</option>
+                        <option value="BAM">Marka - Bosna i Hercegovina - BAM</option>
+                        <option value="PLN">Zlot - Poljska - PLN</option>
+                    </datalist>
+                    
+
+                    <label for="srednjikurs">Srednji kurs NBS</label>
+                    <input type="text" id="kurs" placeholder="Unesite srednji kurs NBS">
+                    
+                </div>
+                
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Redni broj</th>
+                            <th>Opis</th>
+                            <th>Cena u valuti</th>
+                            <th>Akcije</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+
+                <br><br>
+
+                <button class="generateRow" onclick="generateRow()">Novi red</button>
+
+                <br><br>
+
+                <div class="centeredButtons">
+                    <button class="generatePDF">Generiši PDF</button>
+                    <button class="goBack" onclick="goBackToLastScreen()">Nazad</button>
+                </div>
+            </div>
+        </div>
+
+            <script>
+                let currentScreen = 1;
+                let lastScreen = null;
+                const screens = document.querySelectorAll('.screen');
+
+                const updateScreen = (screen) => {
+                    screens.forEach((s, index)=> s.classList.toggle('active', index + 1 === screen));
+                }
+
+                const goBackToLastScreen = () => {
+                    if (lastScreen !== null) {
+                        currentScreen = lastScreen;
+                        updateScreen(currentScreen);
+                    }
+                };
+
+                document.querySelectorAll('.box').forEach(box => {
+                    box.addEventListener('click', () => {
+                        if (currentScreen === 1) {
+                            localStorage.setItem('selectedOption1', box.textContent);
+                            currentScreen = 2;
+                        } else if (currentScreen === 2) {
+                            localStorage.setItem('selectedOption2', box.textContent);
+                            currentScreen = 3;
+                            document.getElementById('selectedOption1').textContent = localStorage.getItem('selectedOption1');
+                            document.getElementById('selectedOption2').textContent = localStorage.getItem('selectedOption2')
+                        }
+                        updateScreen(currentScreen);
+                    });
+                });
+
+                document.querySelectorAll('button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        if (button.textContent === 'Sledeći korak') {
+                            currentScreen = 7;
+                            lastScreen = 4;
+                            updateScreen(currentScreen);
+                        } else if (button.textContent === 'Prethodni korak') {
+                            currentScreen--;
+                            updateScreen(currentScreen);
+                        }
+                    }); 
+                });
+
+                document.getElementById('yesBtn').addEventListener('click', () => {
+                    currentScreen = 4;
+                    updateScreen(currentScreen);
+                });
+
+                document.getElementById('noBtn').addEventListener('click', () => {
+                    currentScreen = 1;
+                    updateScreen(currentScreen);
+                });
+
+                document.getElementById('kurs').addEventListener('input', function(event) {
+                    let value = event.target.value;
+
+                    value = value.replace(/[^0-9,\.]/g, '');
+                    value = value.replace('.', ',');
+                    event.target.value = value;
+                });
+                
+                function getNumber() {
+                    let kursValue = document.getElementById('kurs').value;
+
+                    kursValue = kursValue.replace(',', '.');
+
+                    let numberValue = parseFloat (kursValue);
+
+                    if (!isNan(numberValue)) {
+                        return numberValue;
+                    } else {
+                        alert('Unesite validan broj.');
+                        return null;
+                    }
+                }
+
+                flatpickr("#dateInput", {
+                    dateFormat: "d/m/Y"
+                });
+
+                function showViewClientScreen() {
+                    lastScreen = currentScreen;
+                    currentScreen = 6;
+                    updateScreen(currentScreen);
+                }
+
+                function showAddClientScreen() {
+                    lastScreen = currentScreen;
+                    currentScreen = 5;
+                    updateScreen(currentScreen);
+                }
+
+                const currencyInput = document.getElementById('currency');
+                const kursInput = document.getElementById('kurs');
+
+                currencyInput.addEventListener('input', () => {
+                    if (currencyInput.value === 'RSD') {
+                        kursInput.value = 1;
+                        kursInput.disabled = true;
+                    } else {
+                        kursInput.value = '';
+                        kursInput.disabled = false;
+                    }
+                });
+
+                let rowNumber = 1;
+
+                function formatEuroCurrency(value) {
+                    const cleanValue = value.replace(/[^\d,]/g, '').replace(/\./, ',');
+
+                    let [integerPart, decimalPart] = cleanValue.split(',');
+
+                    integerPart = (integerPart || '0').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+                    if (decimalPart !== undefined) {
+                        return `${integerPart},${decimalPart}`;
+                    }
+
+                    return integerPart;
+                }
+
+                function handlePriceInput(input) {
+                    const cursorPosition = input.selectionStart;
+                    const previousValue = input.value;
+
+                    const formattedValue = formatEuroCurrency(previousValue);
+
+                    input.value = formattedValue;
+
+                    const adjustment = formattedValue.length - previousValue.length;
+                    input.setSelectionRange(cursorPosition + adjustment, cursorPosition + adjustment);
+                }
+
+                function updateRowNumbers() {
+                    const rows = document.querySelectorAll("#dataTable tbody tr");
+                    rows.forEach((row, index) => {
+                        row.cells[0].textContent = index + 1;
+                    });
+                    rowNumber = rows.length + 1;
+                }
+
+                function generateRow() {
+                    const tableBody = document.querySelector("#dataTable tbody");
+                    const row = document.createElement("tr");
+
+                    const serialCell = document.createElement("td");
+                    serialCell.textContent = rowNumber;
+                    row.appendChild(serialCell);
+
+                    const descriptionCell = document.createElement("td");
+                    const descriptionInput = document.createElement("textarea");
+                    descriptionInput.placeholder = "Unesite opis";
+                    descriptionInput.rows = 3;
+                    descriptionInput.style.width = "100%";
+                    descriptionInput.style.fontFamily = "Arial, sans-serif";
+                    descriptionCell.appendChild(descriptionInput);
+                    row.appendChild(descriptionCell);
+
+                    const priceCell = document.createElement("td");
+                    const priceInput = document.createElement("input");
+                    priceInput.type = "text";
+                    priceInput.placeholder = "Unesite cenu";
+                    //priceInput.step = "any";
+
+                    priceInput.addEventListener('input', () => handlePriceInput(priceInput));
+
+                    priceInput.addEventListener('paste', (e) => {
+                        e.preventDefault();
+                        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                        priceInput.value = formatEuroCurrency(pastedText);
+                    })
+
+                    priceInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Delete' || e.key === '.') {
+                            e.preventDefault();
+                            const curPos = e.target.selectionStart;
+                            const currentValue = e.target.value;
+                            const newValue = currentValue.slice(0, curPos) + ',' + currentValue.slice(curPos);
+                            e.target.value = formatEuroCurrency(newValue);
+                            e.target.setSelectionRange(curPos + 1, curPos + 1);
+                        }
+                    });
+
+                    priceCell.appendChild(priceInput);
+                    row.appendChild(priceCell);
+
+                    const deleteCell = document.createElement("td");
+                    const deleteButton = document.createElement("button");
+
+                    deleteButton.textContent = "Obriši red";
+                    deleteButton.classList.add("delete-button");
+                    deleteButton.setAttribute("aria-label", "Delete this row");
+
+                    deleteButton.addEventListener('click', () => {
+                        if (confirm('Da li ste sigurni da želite da obrišete ovaj red?')) {
+                            row.remove();
+                            updateRowNumbers();
+                        }
+                    });
+
+                    deleteCell.appendChild(deleteButton);
+                    row.appendChild(deleteCell);
+
+                    tableBody.appendChild(row);
+
+                    rowNumber++;
+                };
+
+                function filterClients(query, section) {
+                    const suggestionList = document.querySelector(`#${section}Suggestions`);
+
+                    if (!query.trim()) {
+                        suggestionList.innerHTML = '';
+                        suggestionList.classList.remove('active');
+                        return;
+                    }
+
+                    const filteredClients = clientsData.filter(client => {
+                        const nazivMatch = client.Naziv.toLowerCase().includes(query.toLowerCase());
+                        const poreskiMatch = client.poreskiBroj && client.poreskiBroj.includes(query);
+                        return nazivMatch || poreskiMatch;
+                    });
+
+                    if (filteredClients.length === 0) {
+                        suggestionList.innerHTML = '';
+                        suggestionList.classList.remove('active');
+                    } else {
+                        showSuggestions(filteredClients, section);
+                    }
+                }
+
+                function showSuggestions (clients, section) {
+                    const suggestionList = document.querySelector(`#${section}Suggestions`);
+                    suggestionList.innerHTML = '';
+
+                    if (clients.length > 0) {
+                        suggestionList.classList.add('active');
+                        clients.forEach(client => {
+                            const suggestionItem = document.createElement('div');
+                            suggestionItem.classList.add('suggestion');
+                            suggestionItem.textContent = `${client.Naziv} (${client.poreskiBroj})`;
+
+                            suggestionItem.addEventListener('click', () => {
+                                autoFillData(client, section);
+                            });
+
+                            suggestionList.appendChild(suggestionItem);
+                        });
+                    }
+                }
+
+                function autoFillData(client, section) {
+                    document.querySelector(`#${section}Naziv`).value = client.Naziv;
+                    document.querySelector(`#${section}Adresa`).value = client.Adresa;
+                    document.querySelector(`#${section}PoreskiBroj`).value = client.poreskiBroj || '';
+
+                    if (section === 'sacinjavalac') {
+                        document.querySelector('#sacinjavalacOdgovornoLice').value = '';
+                    }
+
+                    const suggestionList = document.querySelector(`#${section}Suggestions`);
+                    suggestionList.innerHTML = '';
+                    suggestionList.classList.remove('active');
+                }
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.addEventListener('click', (e) => {
+                        if (!e.target.closest('.form-section')) {
+                            document.querySelectorAll('.suggestions').forEach(el => {
+                                el.classList.remove('active');
+                            });
+                        }
+                    });
+
+                    ['sacinjavalac', 'isporucilac'].forEach(section => {
+                        const nazivInput = document.querySelector(`#${section}Naziv`);
+                        const poreskiBrojInput = document.querySelector(`#${section}PoreskiBroj`);
+
+                        nazivInput.addEventListener('input', () => filterClients(nazivInput.value, section));
+                        poreskiBrojInput.addEventListener('input', () => filterClients(poreskiBrojInput.value, section));
+                    });
+                });
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    const tableBody = document.querySelector('#clientsTable tbody');
+                    clientsData.forEach(client => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${client.Naziv}</td>
+                            <td>${client.Adresa}</td>
+                            <td>${client.poreskiBroj || ''}</td>
+                            <td>${client.drzavaSedista || client['Država sedišta'] || ''}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                });
+
+                window.addEventListener('beforeunload', function() {
+
+                    const formInputs = document.querySelectorAll('.form-section input');
+                    formInputs.forEach(input => {
+                        input.value = '';
+                    });
+
+                    const tableRows = document.querySelectorAll('#dataTable tbody tr');
+                    tableRows.forEach(row => {
+                        row.remove();
+                    });
+
+                    localstorage.removeItem('selectedOption1');
+                    localStorage.removeItem('selectedOption2');
+                });
+
+            </script>
+
+    </body>
+</html>
