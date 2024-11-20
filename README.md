@@ -1,2 +1,1 @@
-Jednostavno i lako
-interni obračun može napraviti svako!
+Jednostavno i lako, interni obračun može napraviti svako!
