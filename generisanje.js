@@ -55,12 +55,18 @@ document.addEventListener("DOMContentLoaded", function () {
         // Debugging log for supplier details
         console.log({ isporucilacNaziv, isporucilacAdresa, isporucilacPoreskiBroj });
 
+        function formatWithThousandSeparators(num) {
+            const parts = num.toFixed(2).split(".");
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            return parts.join(",");
+        }
+
         // Collect table data
         const tableRows = [];
         let sumOfRowCenaRSD = 0;
         document.querySelectorAll("#dataTable tbody tr").forEach((row, index) => {
             const cols = row.querySelectorAll("td");
-            const cenaUValuti = parseFloat(cols[2]?.querySelector("input")?.value.trim() || "0");
+            const cenaUValuti = parseFloat(cols[2]?.querySelector("input")?.value.trim().replace(/\./g, '').replace(',', '.') || "0");
             const cenaURSD = cenaUValuti * parseFloat(srednjiKurs);
             const poreznaStopa = 20; // Standard VAT rate
             const poreznaOsnovica = cenaURSD;
@@ -69,19 +75,21 @@ document.addEventListener("DOMContentLoaded", function () {
             tableRows.push([
                 index + 1, // R.br
                 cols[1]?.querySelector("textarea")?.value.trim() || "", // Opis
-                cenaUValuti.toFixed(2), // Cena u valuti
+                formatWithThousandSeparators(cenaUValuti), // Cena u valuti
                 srednjiKurs, // Srednji kurs
-                cenaURSD.toFixed(2), // Cena u RSD
-                poreznaOsnovica.toFixed(2), // Poreska osnovica
+                formatWithThousandSeparators(cenaURSD), // Cena u RSD
+                formatWithThousandSeparators(poreznaOsnovica), // Poreska osnovica
                 `${poreznaStopa}%`, // Poreska stopa
-                porezIznos.toFixed(2) // Porez iznos
+                formatWithThousandSeparators(porezIznos) // Porez iznos
             ]);
 
             sumOfRowCenaRSD += cenaURSD;
         });
 
-        const ukupnoPoreskaOsnovica = tableRows.reduce((sum, row) => sum + parseFloat(row[5]), 0).toFixed(2);
-        const ukupnoPDV = tableRows.reduce((sum, row) => sum + parseFloat(row[7]), 0).toFixed(2);
+        function cleanFormattedNumber(numStr) {return parseFloat(numStr.replace(/\./g, '').replace(',', '.'));}
+
+        const ukupnoPoreskaOsnovica = formatWithThousandSeparators(tableRows.reduce((sum, row) => sum + cleanFormattedNumber(row[5]), 0));
+        const ukupnoPDV = formatWithThousandSeparators(tableRows.reduce((sum, row) => sum + cleanFormattedNumber(row[7]), 0));
 
         // Debugging log for table data
         console.log({ tableRows, sumOfRowCenaRSD, ukupnoPoreskaOsnovica, ukupnoPDV });
